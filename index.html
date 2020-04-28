@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Fluid Simulator GPU</title>
+    <style>
+      body {
+        margin: 0;
+      }
+
+      canvas {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+
+  <body>
+    <script type="x-shader/x-vertex" id="vertShader">
+
+      varying vec2 TexCoord;
+
+      void main(void) 
+      {
+        vec4 modelViewPosition = modelViewMatrix * vec4(position, 1.0);
+        gl_Position = projectionMatrix * modelViewPosition;
+        TexCoord = uv;
+      }
+    </script>
+
+    <script type="x-shader/x-fragment" id="fragShader">
+      precision highp float;
+      varying vec2 TexCoord;
+      uniform sampler2D inputTexture;
+      void main() 
+      {
+        float L = texture2D(inputTexture, TexCoord).w;
+        gl_FragColor = vec4(texture2D(inputTexture, TexCoord).r * 0.5, 0.0, texture2D(inputTexture, TexCoord).r, 1.0);
+      }
+    </script>
+
+    <script type="x-shader/x-fragment" id="splatShader">
+      precision highp float;
+      uniform sampler2D bufferTexture;
+      uniform vec2  splatPos;
+      uniform vec4  splatVal;
+      uniform float splatRadius;
+      uniform float  inverseCanvasSize;
+      uniform bool isVelocity;
+
+      void main()
+      {
+          vec2 coord = gl_FragCoord.xy * inverseCanvasSize;
+
+          gl_FragColor = texture2D(bufferTexture, coord);
+          gl_FragColor.r += (splatVal * smoothstep(inverseCanvasSize * splatRadius, 0.0, length(coord-splatPos))).r;
+          if(isVelocity)
+          {
+            gl_FragColor += splatVal * smoothstep(inverseCanvasSize * splatRadius, 0.0, length(coord-splatPos));
+          }
+      }
+    </script>
+
+    <script type="x-shader/x-fragment" id="advectShader">
+      precision highp float;
+      uniform sampler2D toAdvectTexture;
+      uniform sampler2D velocityTexture;
+      uniform float dt;
+      uniform float inverseCanvasSize;
+
+      vec4 f4texRECTbilerp(sampler2D tex, vec2 s)
+      {
+        vec4 st;
+        st.xy = floor(s - 0.5) + 0.5;
+        st.zw = st.xy + 1.0;
+
+        vec2 t = s - st.xy;
+
+        vec4 tex11 = texture2D(tex, st.xy * inverseCanvasSize);
+        vec4 tex21 = texture2D(tex, st.zy * inverseCanvasSize);
+        vec4 tex12 = texture2D(tex, st.xw * inverseCanvasSize);
+        vec4 tex22 = texture2D(tex, st.zw * inverseCanvasSize);
+
+        return mix(mix(tex11, tex21, t.x), mix(tex12, tex22, t.x), t.y);
+      }
+
+      void main()
+      {
+          vec2 pos = gl_FragCoord.xy - dt * texture2D(velocityTexture, gl_FragCoord.xy * inverseCanvasSize).xy;
+          gl_FragColor = f4texRECTbilerp(toAdvectTexture, pos) * 0.9999;
+      }
+    </script>
+
+    <script type="x-shader/x-fragment" id="divergenceShader">
+      precision highp float;
+      uniform sampler2D velocityTexture;
+      uniform float inverseCanvasSize;
+
+      void main()
+      {   
+        vec2 coord = gl_FragCoord.xy * inverseCanvasSize;
+
+          float rX = texture2D(velocityTexture, coord + vec2(1.0, 0.0) * inverseCanvasSize).x;
+          float lX = texture2D(velocityTexture, coord - vec2(1.0, 0.0) * inverseCanvasSize).x;
+          float rY = texture2D(velocityTexture, coord + vec2(0.0, 1.0) * inverseCanvasSize).y;
+          float lY = texture2D(velocityTexture, coord - vec2(0.0, 1.0) * inverseCanvasSize).y;
+
+          float diverged = 0.5 / inverseCanvasSize * ((rX - lX) + (rY - lY));
+
+          gl_FragColor = vec4(-diverged * 0.05, 0.0, 0.0, 0.0);
+      }
+    </script>
+
+    <script type="x-shader/x-fragment" id="jacobiShader">
+      precision highp float;
+      uniform sampler2D xTex;
+      uniform sampler2D bTex;
+      uniform float alpha;
+      uniform float inverseBeta;
+      uniform float inverseCanvasSize;
+
+      void main()
+      {
+          vec2 coord = gl_FragCoord.xy * inverseCanvasSize;
+
+          float xL = texture2D(xTex, coord - inverseCanvasSize * vec2(1.0, 0.0)).r; 
+          float xR = texture2D(xTex, coord + inverseCanvasSize * vec2(1.0, 0.0)).r; 
+          float xB = texture2D(xTex, coord - inverseCanvasSize * vec2(0.0, 1.0)).r; 
+          float xT = texture2D(xTex, coord + inverseCanvasSize * vec2(0.0, 1.0)).r; 
+          float bC = texture2D(bTex, coord).r;
+
+          gl_FragColor = vec4((xL + xR + xB + xT + alpha * bC) * inverseBeta, 0.0, 0.0, 0.0);
+      }
+    </script>
+
+    <script type="x-shader/x-fragment" id="gradientShader">
+      precision highp float;
+      uniform sampler2D velocityTexture;
+      uniform sampler2D pressureTexture;
+      uniform float inverseCanvasSize;
+
+      void main()
+      {
+          vec2 coord = gl_FragCoord.xy * inverseCanvasSize;
+
+          float diffX = texture2D(pressureTexture, coord + vec2(1.0, 0.0) * inverseCanvasSize).x
+                      - texture2D(pressureTexture, coord - vec2(1.0, 0.0) * inverseCanvasSize).x;
+          float diffY = texture2D(pressureTexture, coord + vec2(0.0, 1.0) * inverseCanvasSize).x
+                      - texture2D(pressureTexture, coord - vec2(0.0, 1.0) * inverseCanvasSize).x;
+
+          gl_FragColor = texture2D(velocityTexture, coord);
+          gl_FragColor.xy -= vec2(diffX, diffY) * 2.0 / inverseCanvasSize;
+      }
+    </script>
+
+    <script type="x-shader/x-fragment" id="boundaryShader">
+      precision highp float;
+      uniform sampler2D velocityTexture;
+      uniform float inverseCanvasSize;
+
+      void main()
+      {
+          vec2 coord = gl_FragCoord.xy * inverseCanvasSize;
+
+          gl_FragColor = texture2D(velocityTexture, coord);
+
+          if(coord.x <= 0.01 || coord.x >= 0.99)
+          {
+            gl_FragColor.x *= -1.0;  
+          }
+          
+          if(coord.y <= 0.01 || coord.y >= 0.99)
+          {
+            gl_FragColor.y *= -1.0;  
+          }
+      }
+    </script>
+
+    <script src="Libraries/three.js"></script>
+
+    <script src="main.js"></script>
+  </body>
+</html>
