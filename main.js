@@ -1,7 +1,7 @@
 let CANVAS_SIZE = window.innerHeight;
 let CANVAS_WIDTH = window.innerHeight;
 
-let NUM_JACOBI_ITERATIONS = 20;
+let NUM_JACOBI_ITERATIONS = 50;
 
 let scene, camera, renderer;
 
@@ -206,7 +206,7 @@ function initializeShaders() {
         uniforms: {
             xTex: { type: 't', value: null },
             bTex: { type: 't', value: null },
-            alpha: { value:  1.0 / (CANVAS_SIZE * CANVAS_SIZE * 0.25)},
+            alpha: { value:  -1.0 / (CANVAS_SIZE * CANVAS_SIZE)},
             inverseBeta: { value:  0.25},
             inverseCanvasSize: { value: 1.0 / CANVAS_SIZE },
         },
@@ -273,7 +273,6 @@ function animate() {
     stats.begin();
     advectVelocity(time);
     divergeVelocity();
-
     jacobiPressure();
     
     var tempVel = velocityTexture;
@@ -284,13 +283,13 @@ function animate() {
 
     subtractGradient();
 
-    var tempVel = velocityTexture;
-    velocityTexture = velocityBackTexture;
-    velocityBackTexture = tempVel;
-    velocityQuad.material.map = velocityBackTexture;
-    velocityBackQuad.material.map = velocityTexture;
+    // var tempVel = velocityTexture;
+    // velocityTexture = velocityBackTexture;
+    // velocityBackTexture = tempVel;
+    // velocityQuad.material.map = velocityBackTexture;
+    // velocityBackQuad.material.map = velocityTexture;
 
-    handleBoundaries();
+    // handleBoundaries();
 
     advectDensity(time);
     
@@ -315,7 +314,7 @@ function animate() {
     renderer.clear()
 
     visualize();
-    time += 0.00001;
+    time += 0.0001;
     stats.end();
 }
 
