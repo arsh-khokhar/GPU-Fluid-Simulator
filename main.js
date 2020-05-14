@@ -60,6 +60,10 @@ let prevMouseY;
 
 let time = 0;
 
+var stats = new Stats();
+stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+document.body.appendChild( stats.dom );
+
 function initializeBuffers() {
     const geometry = new THREE.PlaneBufferGeometry(CANVAS_SIZE, CANVAS_WIDTH);
 
@@ -202,7 +206,7 @@ function initializeShaders() {
         uniforms: {
             xTex: { type: 't', value: null },
             bTex: { type: 't', value: null },
-            alpha: { value:  1.0 / (CANVAS_SIZE * CANVAS_SIZE * 0.5)},
+            alpha: { value:  1.0 / (CANVAS_SIZE * CANVAS_SIZE * 0.25)},
             inverseBeta: { value:  0.25},
             inverseCanvasSize: { value: 1.0 / CANVAS_SIZE },
         },
@@ -226,7 +230,7 @@ function initializeShaders() {
 
     boundaryShader = new THREE.ShaderMaterial({
         uniforms: {
-            velocityTexture: { type: 't', value: null },
+            inputTexture: { type: 't', value: null },
             inverseCanvasSize: { value: 1.0 / CANVAS_SIZE },
         },
         vertexShader: document.getElementById('vertShader').innerHTML,
@@ -266,8 +270,8 @@ function init() {
 
 function animate() {
     requestAnimationFrame(animate);
+    stats.begin();
     advectVelocity(time);
-    
     divergeVelocity();
 
     jacobiPressure();
@@ -312,6 +316,7 @@ function animate() {
 
     visualize();
     time += 0.00001;
+    stats.end();
 }
 
 var mouseDown = false;
@@ -367,7 +372,7 @@ function addVelocity(posX, posY, dirX, dirY) {
     renderer.setRenderTarget(velocityBackTexture);
     splatShader.uniforms.bufferTexture.value = velocityTexture;
     splatShader.uniforms.splatPos.value = new THREE.Vector2(posX, posY);
-    splatShader.uniforms.splatVal.value = new THREE.Vector4(dirX * 100000 , dirY  * 100000 , 0.0, 0.0);
+    splatShader.uniforms.splatVal.value = new THREE.Vector4(dirX * 10000 , dirY  * 10000 , 0.0, 0.0);
     splatShader.uniforms.isVelocity.value = true;
     velocityBackQuad.material = splatShader;
     renderer.render(velocityBackBuffer, camera);
@@ -413,18 +418,25 @@ function advectVelocity(timestep) {
 function handleBoundaries()
 {
     renderer.setRenderTarget(velocityBackTexture);
-    boundaryShader.uniforms.velocityTexture.value = velocityTexture;
+    boundaryShader.uniforms.inputTexture.value = velocityTexture;
     velocityBackQuad.material = boundaryShader;
     renderer.render(velocityBackBuffer, camera);
     renderer.setRenderTarget(null);
-    boundaryShader.uniforms.velocityTexture.value = null;
+    boundaryShader.uniforms.inputTexture.value = null;
 
     renderer.setRenderTarget(densityBackTexture);
-    boundaryShader.uniforms.velocityTexture.value = densityTexture;
+    boundaryShader.uniforms.inputTexture.value = densityTexture;
     densityBackQuad.material = boundaryShader;
     renderer.render(densityBackBuffer, camera);
     renderer.setRenderTarget(null);
-    boundaryShader.uniforms.velocityTexture.value = null;
+    boundaryShader.uniforms.inputTexture.value = null;
+    
+    renderer.setRenderTarget(pressureBackTexture);
+    boundaryShader.uniforms.inputTexture.value = pressureTexture;
+    pressureBackQuad.material = boundaryShader;
+    renderer.render(pressureBackBuffer, camera);
+    renderer.setRenderTarget(null);
+    boundaryShader.uniforms.inputTexture.value = null;
 }
 
 function divergeVelocity()

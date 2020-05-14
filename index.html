@@ -89,7 +89,7 @@
       void main()
       {
           vec2 pos = gl_FragCoord.xy - dt * texture2D(velocityTexture, gl_FragCoord.xy * inverseCanvasSize).xy;
-          gl_FragColor = f4texRECTbilerp(toAdvectTexture, pos) * 0.9999;
+          gl_FragColor = f4texRECTbilerp(toAdvectTexture, pos) * 0.999;
       }
     </script>
 
@@ -109,7 +109,7 @@
 
           float diverged = 0.5 / inverseCanvasSize * ((rX - lX) + (rY - lY));
 
-          gl_FragColor = vec4(-diverged * 0.05, 0.0, 0.0, 0.0);
+          gl_FragColor = vec4(-diverged * 0.1, 0.0, 0.0, 0.0);
       }
     </script>
 
@@ -157,14 +157,14 @@
 
     <script type="x-shader/x-fragment" id="boundaryShader">
       precision highp float;
-      uniform sampler2D velocityTexture;
+      uniform sampler2D inputTexture;
       uniform float inverseCanvasSize;
 
       void main()
       {
           vec2 coord = gl_FragCoord.xy * inverseCanvasSize;
 
-          gl_FragColor = texture2D(velocityTexture, coord);
+          gl_FragColor = texture2D(inputTexture, coord);
 
           if(coord.x <= 0.01 || coord.x >= 0.99)
           {
@@ -179,6 +179,7 @@
     </script>
 
     <script src="Libraries/three.js"></script>
+    <script src="Libraries/stats.min.js"></script>
 
     <script src="main.js"></script>
   </body>
