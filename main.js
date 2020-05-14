@@ -1,7 +1,7 @@
 let RENDERER_WIDTH = window.innerWidth;
 let RENDERER_HEIGHT = window.innerHeight;
 
-let QUALITY_FACTOR = 1.0;
+let QUALITY_FACTOR = 1;
 
 let NUM_JACOBI_ITERATIONS = 50;
 
@@ -114,6 +114,7 @@ function initializeBuffers() {
     
     visualizeQuad = new THREE.Mesh(geometry);
     visualizeBuffer = new THREE.Scene();
+    visualizeBuffer.background = null;
     visualizeBuffer.add(visualizeQuad);
 }
 
@@ -174,7 +175,7 @@ function initializeShaders() {
             bufferTexture: { type: 't', value: densityTexture },
             splatPos: { type: 'v2', value: null },
             splatVal: { type: 'v4', value: null },
-            splatRadius: { value: 20.0 },
+            splatRadius: { value: Math.floor(50.0 / QUALITY_FACTOR)},
             inverseCanvasSize: { type: 'v2', value: new THREE.Vector2(1.0 / CANVAS_WIDTH, 1.0 / CANVAS_HEIGHT) },
             isVelocity: { value: false},
         },
@@ -241,7 +242,6 @@ function initializeShaders() {
         vertexShader: document.getElementById('vertShader').innerHTML,
         fragmentShader: document.getElementById('boundaryShader').innerHTML,
         opacity: 1.0,
-        blending: THREE.NoBlending,
     })
 
     mainShader = new THREE.ShaderMaterial({
@@ -252,7 +252,7 @@ function initializeShaders() {
         vertexShader: document.getElementById('vertShader').innerHTML,
         fragmentShader: document.getElementById('fragShader').innerHTML,
         opacity: 1.0,
-        blending: THREE.NoBlending,
+        blending: THREE.NormalBlending,
     })
 }
 
@@ -262,8 +262,8 @@ function init() {
 
     camera.position.z = 2;
 
-    renderer = new THREE.WebGLRenderer();
-
+    renderer = new THREE.WebGLRenderer({alpha: true});
+    renderer.setClearColor(0x000000, 1.0);
     renderer.setSize(CANVAS_WIDTH * QUALITY_FACTOR, CANVAS_HEIGHT * QUALITY_FACTOR);
 
     document.body.appendChild(renderer.domElement);
@@ -351,6 +351,7 @@ function visualize()
     renderer.setRenderTarget(null);
     mainShader.uniforms.inputTexture.value = densityTexture;
     visualizeQuad.material = mainShader;
+    visualizeQuad.material.transparent = true;
     renderer.render(visualizeBuffer, camera);
 }
 
@@ -358,7 +359,8 @@ function addDensity(posX, posY) {
     renderer.setRenderTarget(densityBackTexture);
     splatShader.uniforms.bufferTexture.value = densityTexture;
     splatShader.uniforms.splatPos.value = new THREE.Vector2(posX, posY);
-    splatShader.uniforms.splatVal.value = new THREE.Vector4(0.5, 0.0, 0.0, 1.0);
+    splatShader.uniforms.splatVal.value = new THREE.Vector4(1.0, Math.random(posX)*Math.random(), Math.random(posY)*Math.random(), 0.0);
+    //splatShader.uniforms.splatVal.value = new THREE.Vector4(1.0, 1.0, 1.0, 0.0);
     splatShader.uniforms.isVelocity.value = false;
     densityBackQuad.material = splatShader;
     renderer.render(densityBackBuffer, camera);
@@ -377,7 +379,7 @@ function addVelocity(posX, posY, dirX, dirY) {
     renderer.setRenderTarget(velocityBackTexture);
     splatShader.uniforms.bufferTexture.value = velocityTexture;
     splatShader.uniforms.splatPos.value = new THREE.Vector2(posX, posY);
-    splatShader.uniforms.splatVal.value = new THREE.Vector4(dirX * 10000 , dirY  * 10000 , 0.0, 0.0);
+    splatShader.uniforms.splatVal.value = new THREE.Vector4(dirX * 100000 / QUALITY_FACTOR , dirY  * 100000 / QUALITY_FACTOR , 0.0, 0.0);
     splatShader.uniforms.isVelocity.value = true;
     velocityBackQuad.material = splatShader;
     renderer.render(velocityBackBuffer, camera);

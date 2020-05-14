@@ -36,8 +36,7 @@
       uniform sampler2D inputTexture;
       void main() 
       {
-        float L = texture2D(inputTexture, TexCoord).w;
-        gl_FragColor = vec4(texture2D(inputTexture, TexCoord).r * 0.5, 0.0, texture2D(inputTexture, TexCoord).r, 1.0);
+        gl_FragColor = vec4(texture2D(inputTexture, TexCoord).g, texture2D(inputTexture, TexCoord).b, sin(texture2D(inputTexture, TexCoord).g / texture2D(inputTexture, TexCoord).b * cos(texture2D(inputTexture, TexCoord).r)) , texture2D(inputTexture, TexCoord).r);
       }
     </script>
 
@@ -57,11 +56,7 @@
           gl_FragColor = texture2D(bufferTexture, coord);
           vec2 dist = coord - splatPos; 
           dist.x *= inverseCanvasSize.y / inverseCanvasSize.x;
-          gl_FragColor.r += (splatVal * smoothstep(inverseCanvasSize.x * splatRadius, 0.0, length(dist))).r;
-          if(isVelocity)
-          {
-            gl_FragColor += splatVal * smoothstep(inverseCanvasSize.x * splatRadius, 0.0, length(dist));
-          }
+          gl_FragColor += splatVal * smoothstep(inverseCanvasSize.x * splatRadius, 0.0, length(dist));
       }
     </script>
 
@@ -91,7 +86,7 @@
       void main()
       {
           vec2 pos = gl_FragCoord.xy - dt * texture2D(velocityTexture, gl_FragCoord.xy * inverseCanvasSize).xy;
-          gl_FragColor = f4texRECTbilerp(toAdvectTexture, pos) * 0.9999;
+          gl_FragColor = f4texRECTbilerp(toAdvectTexture, pos) * 0.999;
           if(gl_FragCoord.x * inverseCanvasSize.x < 0.001 || gl_FragCoord.x * inverseCanvasSize.x > 0.998)
           {
             gl_FragColor.x *= -1.0;  
