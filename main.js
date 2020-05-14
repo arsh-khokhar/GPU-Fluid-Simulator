@@ -1,9 +1,12 @@
 let RENDERER_WIDTH = window.innerWidth;
 let RENDERER_HEIGHT = window.innerHeight;
+
+let QUALITY_FACTOR = 1;
+
 let NUM_JACOBI_ITERATIONS = 50;
 
-let CANVAS_HEIGHT = 400;
-let CANVAS_WIDTH = 600;
+let CANVAS_HEIGHT = window.innerHeight / QUALITY_FACTOR;
+let CANVAS_WIDTH = window.innerWidth / QUALITY_FACTOR;
 
 let scene, camera, renderer;
 
@@ -261,7 +264,7 @@ function init() {
 
     renderer = new THREE.WebGLRenderer();
 
-    renderer.setSize(CANVAS_WIDTH, CANVAS_HEIGHT);
+    renderer.setSize(CANVAS_WIDTH * QUALITY_FACTOR, CANVAS_HEIGHT * QUALITY_FACTOR);
 
     document.body.appendChild(renderer.domElement);
 
@@ -333,7 +336,7 @@ function UpdateMousePosition(X, Y) {
     }
 }
 document.onmousemove = function (event) {
-    UpdateMousePosition(event.clientX, event.clientY) 
+    UpdateMousePosition(event.clientX / QUALITY_FACTOR, event.clientY / QUALITY_FACTOR) 
 }
 
 document.onmousedown = function (event) {
