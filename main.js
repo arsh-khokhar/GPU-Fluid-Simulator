@@ -1,6 +1,7 @@
-let CANVAS_SIZE = 800.0;
+let CANVAS_SIZE = 512; //window.innerHeight;
+let CANVAS_WIDTH = 512;//window.innerHeight;
 
-let NUM_JACOBI_ITERATIONS = 50;
+let NUM_JACOBI_ITERATIONS = 20;
 
 let scene, camera, renderer;
 
@@ -60,7 +61,7 @@ let prevMouseY;
 let time = 0;
 
 function initializeBuffers() {
-    const geometry = new THREE.PlaneBufferGeometry(CANVAS_SIZE, CANVAS_SIZE);
+    const geometry = new THREE.PlaneBufferGeometry(CANVAS_SIZE, CANVAS_WIDTH);
 
     // set up density framebuffer
     densityQuad = new THREE.Mesh(geometry);
@@ -109,16 +110,16 @@ function initializeBuffers() {
 
 function initializeTextures() {
     
-    densityTexture = new THREE.WebGLRenderTarget(CANVAS_SIZE, CANVAS_SIZE, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
-    densityBackTexture = new THREE.WebGLRenderTarget(CANVAS_SIZE, CANVAS_SIZE, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
-    velocityTexture = new THREE.WebGLRenderTarget(CANVAS_SIZE, CANVAS_SIZE, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
-    velocityBackTexture = new THREE.WebGLRenderTarget(CANVAS_SIZE, CANVAS_SIZE, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
-    pressureTexture = new THREE.WebGLRenderTarget(CANVAS_SIZE, CANVAS_SIZE, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
-    pressureBackTexture = new THREE.WebGLRenderTarget(CANVAS_SIZE, CANVAS_SIZE, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
-    divergenceTexture = new THREE.WebGLRenderTarget(CANVAS_SIZE, CANVAS_SIZE, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
-    divergenceBackTexture = new THREE.WebGLRenderTarget(CANVAS_SIZE, CANVAS_SIZE, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
+    densityTexture = new THREE.WebGLRenderTarget(CANVAS_SIZE, CANVAS_WIDTH, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
+    densityBackTexture = new THREE.WebGLRenderTarget(CANVAS_SIZE, CANVAS_WIDTH, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
+    velocityTexture = new THREE.WebGLRenderTarget(CANVAS_SIZE, CANVAS_WIDTH, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
+    velocityBackTexture = new THREE.WebGLRenderTarget(CANVAS_SIZE, CANVAS_WIDTH, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
+    pressureTexture = new THREE.WebGLRenderTarget(CANVAS_SIZE, CANVAS_WIDTH, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
+    pressureBackTexture = new THREE.WebGLRenderTarget(CANVAS_SIZE, CANVAS_WIDTH, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
+    divergenceTexture = new THREE.WebGLRenderTarget(CANVAS_SIZE, CANVAS_WIDTH, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
+    divergenceBackTexture = new THREE.WebGLRenderTarget(CANVAS_SIZE, CANVAS_WIDTH, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
 
-    const geometry = new THREE.PlaneBufferGeometry(CANVAS_SIZE, CANVAS_SIZE);
+    const geometry = new THREE.PlaneBufferGeometry(CANVAS_SIZE, CANVAS_WIDTH);
     
     var dummyQuad = new THREE.Mesh(geometry);
 
@@ -310,7 +311,7 @@ function animate() {
     renderer.clear()
 
     visualize();
-    time += 0.00008;
+    time += 0.00001;
 }
 
 var mouseDown = false;
@@ -417,6 +418,13 @@ function handleBoundaries()
     boundaryShader.uniforms.velocityTexture.value = velocityTexture;
     velocityBackQuad.material = boundaryShader;
     renderer.render(velocityBackBuffer, camera);
+    renderer.setRenderTarget(null);
+    boundaryShader.uniforms.velocityTexture.value = null;
+
+    renderer.setRenderTarget(densityBackTexture);
+    boundaryShader.uniforms.velocityTexture.value = densityTexture;
+    densityBackQuad.material = boundaryShader;
+    renderer.render(densityBackBuffer, camera);
     renderer.setRenderTarget(null);
     boundaryShader.uniforms.velocityTexture.value = null;
 }
