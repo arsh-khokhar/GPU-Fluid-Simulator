@@ -1,7 +1,9 @@
-let CANVAS_SIZE = window.innerHeight;
-let CANVAS_WIDTH = window.innerHeight;
-
+let RENDERER_WIDTH = window.innerWidth;
+let RENDERER_HEIGHT = window.innerHeight;
 let NUM_JACOBI_ITERATIONS = 50;
+
+let CANVAS_HEIGHT = 400;
+let CANVAS_WIDTH = 600;
 
 let scene, camera, renderer;
 
@@ -65,7 +67,7 @@ stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
 document.body.appendChild( stats.dom );
 
 function initializeBuffers() {
-    const geometry = new THREE.PlaneBufferGeometry(CANVAS_SIZE, CANVAS_WIDTH);
+    const geometry = new THREE.PlaneBufferGeometry(CANVAS_WIDTH, CANVAS_HEIGHT);
 
     // set up density framebuffer
     densityQuad = new THREE.Mesh(geometry);
@@ -114,16 +116,16 @@ function initializeBuffers() {
 
 function initializeTextures() {
     
-    densityTexture = new THREE.WebGLRenderTarget(CANVAS_SIZE, CANVAS_WIDTH, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
-    densityBackTexture = new THREE.WebGLRenderTarget(CANVAS_SIZE, CANVAS_WIDTH, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
-    velocityTexture = new THREE.WebGLRenderTarget(CANVAS_SIZE, CANVAS_WIDTH, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
-    velocityBackTexture = new THREE.WebGLRenderTarget(CANVAS_SIZE, CANVAS_WIDTH, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
-    pressureTexture = new THREE.WebGLRenderTarget(CANVAS_SIZE, CANVAS_WIDTH, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
-    pressureBackTexture = new THREE.WebGLRenderTarget(CANVAS_SIZE, CANVAS_WIDTH, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
-    divergenceTexture = new THREE.WebGLRenderTarget(CANVAS_SIZE, CANVAS_WIDTH, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
-    divergenceBackTexture = new THREE.WebGLRenderTarget(CANVAS_SIZE, CANVAS_WIDTH, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
+    densityTexture = new THREE.WebGLRenderTarget(CANVAS_WIDTH, CANVAS_HEIGHT, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
+    densityBackTexture = new THREE.WebGLRenderTarget(CANVAS_WIDTH, CANVAS_HEIGHT, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
+    velocityTexture = new THREE.WebGLRenderTarget(CANVAS_WIDTH, CANVAS_HEIGHT, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
+    velocityBackTexture = new THREE.WebGLRenderTarget(CANVAS_WIDTH, CANVAS_HEIGHT, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
+    pressureTexture = new THREE.WebGLRenderTarget(CANVAS_WIDTH, CANVAS_HEIGHT, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
+    pressureBackTexture = new THREE.WebGLRenderTarget(CANVAS_WIDTH, CANVAS_HEIGHT, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
+    divergenceTexture = new THREE.WebGLRenderTarget(CANVAS_WIDTH, CANVAS_HEIGHT, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
+    divergenceBackTexture = new THREE.WebGLRenderTarget(CANVAS_WIDTH, CANVAS_HEIGHT, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType, internalFormat: 'RGBA32F'});
 
-    const geometry = new THREE.PlaneBufferGeometry(CANVAS_SIZE, CANVAS_WIDTH);
+    const geometry = new THREE.PlaneBufferGeometry(CANVAS_WIDTH, CANVAS_HEIGHT);
     
     var dummyQuad = new THREE.Mesh(geometry);
 
@@ -170,7 +172,7 @@ function initializeShaders() {
             splatPos: { type: 'v2', value: null },
             splatVal: { type: 'v4', value: null },
             splatRadius: { value: 20.0 },
-            inverseCanvasSize: { value: 1.0 / CANVAS_SIZE },
+            inverseCanvasSize: { type: 'v2', value: new THREE.Vector2(1.0 / CANVAS_WIDTH, 1.0 / CANVAS_HEIGHT) },
             isVelocity: { value: false},
         },
         fragmentShader: document.getElementById('splatShader').innerHTML,
@@ -183,7 +185,7 @@ function initializeShaders() {
             toAdvectTexture: { type: 't', value: null },
             velocityTexture: { type: 't', value: null },
             dt: { value: 0.0 },
-            inverseCanvasSize: { value: 1.0 / CANVAS_SIZE },
+            inverseCanvasSize: { type: 'v2', value: new THREE.Vector2(1.0 / CANVAS_WIDTH, 1.0 / CANVAS_HEIGHT) },
         },
         vertexShader: document.getElementById('vertShader').innerHTML,
         fragmentShader: document.getElementById('advectShader').innerHTML,
@@ -194,7 +196,7 @@ function initializeShaders() {
     divergenceShader = new THREE.ShaderMaterial({
         uniforms: {
             velocityTexture: { type: 't', value: null },
-            inverseCanvasSize: { value: 1.0 / CANVAS_SIZE },
+            inverseCanvasSize: { type: 'v2', value: new THREE.Vector2(1.0 / CANVAS_WIDTH, 1.0 / CANVAS_HEIGHT) },
         },
         vertexShader: document.getElementById('vertShader').innerHTML,
         fragmentShader: document.getElementById('divergenceShader').innerHTML,
@@ -206,9 +208,9 @@ function initializeShaders() {
         uniforms: {
             xTex: { type: 't', value: null },
             bTex: { type: 't', value: null },
-            alpha: { value:  -1.0 / (CANVAS_SIZE * CANVAS_SIZE)},
+            alpha: { value:  -1.0 / (CANVAS_WIDTH * CANVAS_HEIGHT)},
             inverseBeta: { value:  0.25},
-            inverseCanvasSize: { value: 1.0 / CANVAS_SIZE },
+            inverseCanvasSize: { type: 'v2', value: new THREE.Vector2(1.0 / CANVAS_WIDTH, 1.0 / CANVAS_HEIGHT) },
         },
         vertexShader: document.getElementById('vertShader').innerHTML,
         fragmentShader: document.getElementById('jacobiShader').innerHTML,
@@ -220,7 +222,7 @@ function initializeShaders() {
         uniforms: {
             velocityTexture: { type: 't', value: null },
             pressureTexture: { type: 't', value: null },
-            inverseCanvasSize: { value: 1.0 / CANVAS_SIZE },
+            inverseCanvasSize: { type: 'v2', value: new THREE.Vector2(1.0 / CANVAS_WIDTH, 1.0 / CANVAS_HEIGHT) },
         },
         vertexShader: document.getElementById('vertShader').innerHTML,
         fragmentShader: document.getElementById('gradientShader').innerHTML,
@@ -231,7 +233,7 @@ function initializeShaders() {
     boundaryShader = new THREE.ShaderMaterial({
         uniforms: {
             inputTexture: { type: 't', value: null },
-            inverseCanvasSize: { value: 1.0 / CANVAS_SIZE },
+            inverseCanvasSize: { type: 'v2', value: new THREE.Vector2(1.0 / CANVAS_WIDTH, 1.0 / CANVAS_HEIGHT) },
         },
         vertexShader: document.getElementById('vertShader').innerHTML,
         fragmentShader: document.getElementById('boundaryShader').innerHTML,
@@ -242,7 +244,7 @@ function initializeShaders() {
     mainShader = new THREE.ShaderMaterial({
         uniforms: {
             inputTexture: { type: 't', value: densityTexture },
-            inverseCanvasSize: { value: 1.0 / CANVAS_SIZE },
+            inverseCanvasSize: { type: 'v2', value: new THREE.Vector2(1.0 / CANVAS_WIDTH, 1.0 / CANVAS_HEIGHT) },
         },
         vertexShader: document.getElementById('vertShader').innerHTML,
         fragmentShader: document.getElementById('fragShader').innerHTML,
@@ -253,13 +255,13 @@ function initializeShaders() {
 
 function init() {
 
-    camera = new THREE.OrthographicCamera(CANVAS_SIZE / - 2, CANVAS_SIZE / 2, CANVAS_SIZE / 2, CANVAS_SIZE / - 2, 1, 1000);
+    camera = new THREE.OrthographicCamera(CANVAS_WIDTH / - 2, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, CANVAS_HEIGHT / - 2, 1, 1000);
 
     camera.position.z = 2;
 
     renderer = new THREE.WebGLRenderer();
 
-    renderer.setSize(CANVAS_SIZE, CANVAS_SIZE);
+    renderer.setSize(CANVAS_WIDTH, CANVAS_HEIGHT);
 
     document.body.appendChild(renderer.domElement);
 
@@ -320,9 +322,10 @@ function animate() {
 
 var mouseDown = false;
 function UpdateMousePosition(X, Y) {
-    var mouseX = X / CANVAS_SIZE;
-    var mouseY = (CANVAS_SIZE - Y) / CANVAS_SIZE;
-    if (mouseDown && X < CANVAS_SIZE && Y < CANVAS_SIZE && X > 0 && Y > 0) {
+    var mouseX = X / CANVAS_WIDTH;
+    var mouseY = (CANVAS_HEIGHT - Y) / CANVAS_HEIGHT;
+
+    if (mouseDown && X < CANVAS_WIDTH && Y < CANVAS_HEIGHT && X > 0 && Y > 0) {
         addDensity(mouseX, mouseY);
         addVelocity(mouseX, mouseY, mouseX - prevMouseX, mouseY - prevMouseY);
         prevMouseX = mouseX;
@@ -330,7 +333,7 @@ function UpdateMousePosition(X, Y) {
     }
 }
 document.onmousemove = function (event) {
-    UpdateMousePosition(event.clientX, event.clientY)
+    UpdateMousePosition(event.clientX, event.clientY) 
 }
 
 document.onmousedown = function (event) {
@@ -352,7 +355,7 @@ function addDensity(posX, posY) {
     renderer.setRenderTarget(densityBackTexture);
     splatShader.uniforms.bufferTexture.value = densityTexture;
     splatShader.uniforms.splatPos.value = new THREE.Vector2(posX, posY);
-    splatShader.uniforms.splatVal.value = new THREE.Vector4(1.0, 0.0, 0.0, 1.0);
+    splatShader.uniforms.splatVal.value = new THREE.Vector4(0.5, 0.0, 0.0, 1.0);
     splatShader.uniforms.isVelocity.value = false;
     densityBackQuad.material = splatShader;
     renderer.render(densityBackBuffer, camera);

@@ -47,7 +47,7 @@
       uniform vec2  splatPos;
       uniform vec4  splatVal;
       uniform float splatRadius;
-      uniform float  inverseCanvasSize;
+      uniform vec2 inverseCanvasSize;
       uniform bool isVelocity;
 
       void main()
@@ -55,10 +55,12 @@
           vec2 coord = gl_FragCoord.xy * inverseCanvasSize;
 
           gl_FragColor = texture2D(bufferTexture, coord);
-          gl_FragColor.r += (splatVal * smoothstep(inverseCanvasSize * splatRadius, 0.0, length(coord-splatPos))).r;
+          vec2 dist = coord - splatPos; 
+          dist.x *= inverseCanvasSize.y / inverseCanvasSize.x;
+          gl_FragColor.r += (splatVal * smoothstep(inverseCanvasSize.x * splatRadius, 0.0, length(dist))).r;
           if(isVelocity)
           {
-            gl_FragColor += splatVal * smoothstep(inverseCanvasSize * splatRadius, 0.0, length(coord-splatPos));
+            gl_FragColor += splatVal * smoothstep(inverseCanvasSize.x * splatRadius, 0.0, length(dist));
           }
       }
     </script>
@@ -68,7 +70,7 @@
       uniform sampler2D toAdvectTexture;
       uniform sampler2D velocityTexture;
       uniform float dt;
-      uniform float inverseCanvasSize;
+      uniform vec2 inverseCanvasSize;
 
       vec4 f4texRECTbilerp(sampler2D tex, vec2 s)
       {
@@ -96,7 +98,7 @@
     <script type="x-shader/x-fragment" id="divergenceShader">
       precision highp float;
       uniform sampler2D velocityTexture;
-      uniform float inverseCanvasSize;
+      uniform vec2 inverseCanvasSize;
 
       void main()
       {   
@@ -107,7 +109,8 @@
         float rY = texture2D(velocityTexture, coord + vec2(0.0, 1.0) * inverseCanvasSize).y;
         float lY = texture2D(velocityTexture, coord - vec2(0.0, 1.0) * inverseCanvasSize).y;
 
-        float diverged = 0.5 / (inverseCanvasSize * inverseCanvasSize) * ((rX - lX) + (rY - lY));
+        float diverged = 0.5 / (inverseCanvasSize.x * inverseCanvasSize.y) * ((rX - lX) + (rY - lY));
+
         gl_FragColor = vec4(diverged, 0.0, 0.0, 0.0);
       }
     </script>
@@ -118,7 +121,7 @@
       uniform sampler2D bTex;
       uniform float alpha;
       uniform float inverseBeta;
-      uniform float inverseCanvasSize;
+      uniform vec2 inverseCanvasSize;
 
       void main()
       {
@@ -138,7 +141,7 @@
       precision highp float;
       uniform sampler2D velocityTexture;
       uniform sampler2D pressureTexture;
-      uniform float inverseCanvasSize;
+      uniform vec2 inverseCanvasSize;
 
       void main()
       {
