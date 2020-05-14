@@ -92,7 +92,17 @@
       {
           vec2 pos = gl_FragCoord.xy - dt * texture2D(velocityTexture, gl_FragCoord.xy * inverseCanvasSize).xy;
           gl_FragColor = f4texRECTbilerp(toAdvectTexture, pos) * 0.9999;
+          if(gl_FragCoord.x * inverseCanvasSize.x < 0.001 || gl_FragCoord.x * inverseCanvasSize.x > 0.998)
+          {
+            gl_FragColor.x *= -1.0;  
+          }
+          
+          if(gl_FragCoord.y * inverseCanvasSize.y < 0.001 || gl_FragCoord.y * inverseCanvasSize.y > 0.998)
+          {
+            gl_FragColor.y *= -1.0;  
+          }
       }
+
     </script>
 
     <script type="x-shader/x-fragment" id="divergenceShader">

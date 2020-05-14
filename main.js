@@ -1,7 +1,7 @@
 let RENDERER_WIDTH = window.innerWidth;
 let RENDERER_HEIGHT = window.innerHeight;
 
-let QUALITY_FACTOR = 1;
+let QUALITY_FACTOR = 1.0;
 
 let NUM_JACOBI_ITERATIONS = 50;
 
