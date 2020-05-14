@@ -1,5 +1,5 @@
-let CANVAS_SIZE = 512; //window.innerHeight;
-let CANVAS_WIDTH = 512;//window.innerHeight;
+let CANVAS_SIZE = window.innerHeight;
+let CANVAS_WIDTH = window.innerHeight;
 
 let NUM_JACOBI_ITERATIONS = 20;
 
@@ -165,7 +165,7 @@ function initializeShaders() {
             bufferTexture: { type: 't', value: densityTexture },
             splatPos: { type: 'v2', value: null },
             splatVal: { type: 'v4', value: null },
-            splatRadius: { value: 10.0 },
+            splatRadius: { value: 20.0 },
             inverseCanvasSize: { value: 1.0 / CANVAS_SIZE },
             isVelocity: { value: false},
         },
@@ -202,7 +202,7 @@ function initializeShaders() {
         uniforms: {
             xTex: { type: 't', value: null },
             bTex: { type: 't', value: null },
-            alpha: { value:  1.0 / (CANVAS_SIZE * CANVAS_SIZE)},
+            alpha: { value:  1.0 / (CANVAS_SIZE * CANVAS_SIZE * 0.5)},
             inverseBeta: { value:  0.25},
             inverseCanvasSize: { value: 1.0 / CANVAS_SIZE },
         },
@@ -331,8 +331,6 @@ document.onmousemove = function (event) {
 
 document.onmousedown = function (event) {
     mouseDown = true;
-    prevMouseX = event.clientX;
-    prevMouseY = event.clientY;
 }
 document.onmouseup = function (event) {
     mouseDown = false;
@@ -369,7 +367,7 @@ function addVelocity(posX, posY, dirX, dirY) {
     renderer.setRenderTarget(velocityBackTexture);
     splatShader.uniforms.bufferTexture.value = velocityTexture;
     splatShader.uniforms.splatPos.value = new THREE.Vector2(posX, posY);
-    splatShader.uniforms.splatVal.value = new THREE.Vector4(dirX * 10000 , dirY  * 10000 , 0.0, 0.0);
+    splatShader.uniforms.splatVal.value = new THREE.Vector4(dirX * 100000 , dirY  * 100000 , 0.0, 0.0);
     splatShader.uniforms.isVelocity.value = true;
     velocityBackQuad.material = splatShader;
     renderer.render(velocityBackBuffer, camera);
