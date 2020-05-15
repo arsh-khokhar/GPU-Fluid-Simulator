@@ -346,6 +346,17 @@ document.onmouseup = function (event) {
     mouseDown = false;
 }
 
+document.ontouchmove = function (event) {
+    UpdateMousePosition(event.clientX / QUALITY_FACTOR, event.clientY / QUALITY_FACTOR) 
+}
+
+document.ontouchstart = function (event) {
+    mouseDown = true;
+}
+document.ontouchend = function (event) {
+    mouseDown = false;
+}
+
 function visualize()
 {
     renderer.setRenderTarget(null);
@@ -360,7 +371,6 @@ function addDensity(posX, posY) {
     splatShader.uniforms.bufferTexture.value = densityTexture;
     splatShader.uniforms.splatPos.value = new THREE.Vector2(posX, posY);
     splatShader.uniforms.splatVal.value = new THREE.Vector4(1.0, Math.random(posX)*Math.random(), Math.random(posY)*Math.random(), 0.0);
-    //splatShader.uniforms.splatVal.value = new THREE.Vector4(1.0, 1.0, 1.0, 0.0);
     splatShader.uniforms.isVelocity.value = false;
     densityBackQuad.material = splatShader;
     renderer.render(densityBackBuffer, camera);
