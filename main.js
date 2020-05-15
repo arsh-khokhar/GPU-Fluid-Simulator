@@ -351,6 +351,8 @@ document.ontouchmove = function (event) {
 }
 
 document.ontouchstart = function (event) {
+    addDensity(0, 0);
+    addVelocity(0, 0, 1, 1);
     mouseDown = true;
 }
 document.ontouchend = function (event) {
