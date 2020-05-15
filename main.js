@@ -3,10 +3,10 @@ let RENDERER_HEIGHT = window.innerHeight;
 
 let QUALITY_FACTOR = 1;
 
-let NUM_JACOBI_ITERATIONS = 50;
+let NUM_JACOBI_ITERATIONS = 30;
 
-let CANVAS_HEIGHT = window.innerHeight / QUALITY_FACTOR;
-let CANVAS_WIDTH = window.innerWidth / QUALITY_FACTOR;
+let CANVAS_HEIGHT = RENDERER_HEIGHT / QUALITY_FACTOR;
+let CANVAS_WIDTH = RENDERER_WIDTH / QUALITY_FACTOR;
 
 let scene, camera, renderer;
 
@@ -66,7 +66,7 @@ let prevMouseY;
 let time = 0;
 
 var stats = new Stats();
-stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+stats.showPanel( 0 ); 
 document.body.appendChild( stats.dom );
 
 function initializeBuffers() {
