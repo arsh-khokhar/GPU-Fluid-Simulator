@@ -175,7 +175,7 @@ function initializeShaders() {
             bufferTexture: { type: 't', value: densityTexture },
             splatPos: { type: 'v2', value: null },
             splatVal: { type: 'v4', value: null },
-            splatRadius: { value: Math.floor(50.0 / QUALITY_FACTOR)},
+            splatRadius: { value: Math.floor(500.0 / QUALITY_FACTOR)},
             inverseCanvasSize: { type: 'v2', value: new THREE.Vector2(1.0 / CANVAS_WIDTH, 1.0 / CANVAS_HEIGHT) },
             isVelocity: { value: false},
         },
@@ -514,4 +514,9 @@ function subtractGradient()
 }
 
 init();
+addDensity(0.5, 0.5);
+addDensity(0.5, 0.5);
+addDensity(0.5, 0.5);
+addDensity(0.5, 0.5);
+addVelocity(0.5, 0.5, 0.01,0.01);
 animate();
