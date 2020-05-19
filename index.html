@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Fluid Simulator GPU</title>
+    <title>GPU Fluid Simulation</title>
     <style>
       body {
         margin: 0;
@@ -22,7 +22,7 @@
 
       varying vec2 TexCoord;
 
-      void main(void) 
+      void main(void)
       {
         vec4 modelViewPosition = modelViewMatrix * vec4(position, 1.0);
         gl_Position = projectionMatrix * modelViewPosition;
@@ -34,7 +34,7 @@
       precision highp float;
       varying vec2 TexCoord;
       uniform sampler2D inputTexture;
-      void main() 
+      void main()
       {
         gl_FragColor = vec4(texture2D(inputTexture, TexCoord).g, texture2D(inputTexture, TexCoord).b, sin(texture2D(inputTexture, TexCoord).g / texture2D(inputTexture, TexCoord).b * cos(texture2D(inputTexture, TexCoord).r)) , texture2D(inputTexture, TexCoord).r);
       }
@@ -54,7 +54,7 @@
           vec2 coord = gl_FragCoord.xy * inverseCanvasSize;
 
           gl_FragColor = texture2D(bufferTexture, coord) * 0.999;
-          vec2 dist = coord - splatPos; 
+          vec2 dist = coord - splatPos;
           dist.x *= inverseCanvasSize.y / inverseCanvasSize.x;
           gl_FragColor += splatVal * smoothstep(inverseCanvasSize.x * splatRadius, 0.0, length(dist));
       }
@@ -89,15 +89,14 @@
           gl_FragColor = f4texRECTbilerp(toAdvectTexture, pos) * 0.999;
           if(gl_FragCoord.x * inverseCanvasSize.x < 0.001 || gl_FragCoord.x * inverseCanvasSize.x > 0.998)
           {
-            gl_FragColor.x *= -1.0;  
+            gl_FragColor.x *= -1.0;
           }
-          
+
           if(gl_FragCoord.y * inverseCanvasSize.y < 0.001 || gl_FragCoord.y * inverseCanvasSize.y > 0.998)
           {
-            gl_FragColor.y *= -1.0;  
+            gl_FragColor.y *= -1.0;
           }
       }
-
     </script>
 
     <script type="x-shader/x-fragment" id="divergenceShader">
@@ -106,7 +105,7 @@
       uniform vec2 inverseCanvasSize;
 
       void main()
-      {   
+      {
         vec2 coord = gl_FragCoord.xy * inverseCanvasSize;
 
         float rX = texture2D(velocityTexture, coord + vec2(1.0, 0.0) * inverseCanvasSize).x;
@@ -132,10 +131,10 @@
       {
           vec2 coord = gl_FragCoord.xy * inverseCanvasSize;
 
-          float xL = texture2D(xTex, coord - inverseCanvasSize * vec2(1.0, 0.0)).r; 
-          float xR = texture2D(xTex, coord + inverseCanvasSize * vec2(1.0, 0.0)).r; 
-          float xB = texture2D(xTex, coord - inverseCanvasSize * vec2(0.0, 1.0)).r; 
-          float xT = texture2D(xTex, coord + inverseCanvasSize * vec2(0.0, 1.0)).r; 
+          float xL = texture2D(xTex, coord - inverseCanvasSize * vec2(1.0, 0.0)).r;
+          float xR = texture2D(xTex, coord + inverseCanvasSize * vec2(1.0, 0.0)).r;
+          float xB = texture2D(xTex, coord - inverseCanvasSize * vec2(0.0, 1.0)).r;
+          float xT = texture2D(xTex, coord + inverseCanvasSize * vec2(0.0, 1.0)).r;
           float bC = texture2D(bTex, coord).r;
 
           gl_FragColor = vec4((xL + xR + xB + xT + alpha * bC) * inverseBeta, 0.0, 0.0, 0.0);
@@ -158,7 +157,7 @@
                       - texture2D(pressureTexture, coord - vec2(0.0, 1.0) * inverseCanvasSize).x;
 
           gl_FragColor = texture2D(velocityTexture, coord);
-          gl_FragColor.xy -= vec2(diffX, diffY); 
+          gl_FragColor.xy -= vec2(diffX, diffY);
       }
     </script>
 
@@ -175,12 +174,12 @@
 
           if(coord.x <= 0.01 || coord.x >= 0.99)
           {
-            gl_FragColor.x *= -1.0;  
+            gl_FragColor.x *= -1.0;
           }
-          
+
           if(coord.y <= 0.01 || coord.y >= 0.99)
           {
-            gl_FragColor.y *= -1.0;  
+            gl_FragColor.y *= -1.0;
           }
       }
     </script>
