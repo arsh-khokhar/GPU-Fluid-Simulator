@@ -4,6 +4,7 @@ let RENDERER_HEIGHT = window.innerHeight;
 let QUALITY_FACTOR = 1;
 
 let NUM_JACOBI_ITERATIONS = 30;
+let SPLAT_RADIUS = 50;
 
 let CANVAS_HEIGHT = RENDERER_HEIGHT / QUALITY_FACTOR;
 let CANVAS_WIDTH = RENDERER_WIDTH / QUALITY_FACTOR;
@@ -68,6 +69,22 @@ let time = 0;
 var stats = new Stats ();
 stats.showPanel (0);
 document.body.appendChild (stats.dom);
+
+var GUIcontrols = {
+  Jacobi_Iterations: NUM_JACOBI_ITERATIONS,
+  Splat_Radius: SPLAT_RADIUS,
+};
+
+var gui = new dat.GUI ();
+
+gui.add (GUIcontrols, 'Jacobi_Iterations', 10, 50).onFinishChange (function () {
+  NUM_JACOBI_ITERATIONS = GUIcontrols.Jacobi_Iterations;
+});
+
+gui.add (GUIcontrols, 'Splat_Radius', 10, 500).onFinishChange (function () {
+  SPLAT_RADIUS = GUIcontrols.Splat_Radius;
+  splatShader.uniforms.splatRadius.value = SPLAT_RADIUS;
+});
 
 function initializeBuffers () {
   const geometry = new THREE.PlaneBufferGeometry (CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -232,7 +249,7 @@ function initializeShaders () {
       bufferTexture: {type: 't', value: densityTexture},
       splatPos: {type: 'v2', value: null},
       splatVal: {type: 'v4', value: null},
-      splatRadius: {value: Math.floor (50.0 / QUALITY_FACTOR)},
+      splatRadius: {value: SPLAT_RADIUS},
       inverseCanvasSize: {
         type: 'v2',
         value: new THREE.Vector2 (1.0 / CANVAS_WIDTH, 1.0 / CANVAS_HEIGHT),
@@ -375,14 +392,6 @@ function animate () {
   velocityBackQuad.material.map = velocityTexture;
 
   subtractGradient ();
-
-  // var tempVel = velocityTexture;
-  // velocityTexture = velocityBackTexture;
-  // velocityBackTexture = tempVel;
-  // velocityQuad.material.map = velocityBackTexture;
-  // velocityBackQuad.material.map = velocityTexture;
-
-  // handleBoundaries();
 
   advectDensity (time);
 
