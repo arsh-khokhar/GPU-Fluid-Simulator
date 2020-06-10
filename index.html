@@ -88,22 +88,6 @@
       {
           vec2 pos = gl_FragCoord.xy - dt * texture2D(velocityTexture, gl_FragCoord.xy * inverseCanvasSize).xy;
           gl_FragColor = f4texRECTbilerp(toAdvectTexture, pos);
-          if(isVelocity)
-          {
-            if(gl_FragCoord.x * inverseCanvasSize.x < 0.001 || gl_FragCoord.x * inverseCanvasSize.x > 0.998)
-            {
-              gl_FragColor.x *= -1.0;
-            }
-
-            if(gl_FragCoord.y * inverseCanvasSize.y < 0.001 || gl_FragCoord.y * inverseCanvasSize.y > 0.998)
-            {
-             gl_FragColor.y *= -1.0;
-            }
-          }
-          else
-          {
-            gl_FragColor*=0.999;
-          }
       }
     </script>
 
@@ -120,6 +104,26 @@
         float lX = texture2D(velocityTexture, coord - vec2(1.0, 0.0) * inverseCanvasSize).x;
         float rY = texture2D(velocityTexture, coord + vec2(0.0, 1.0) * inverseCanvasSize).y;
         float lY = texture2D(velocityTexture, coord - vec2(0.0, 1.0) * inverseCanvasSize).y;
+
+        if((coord + vec2(1.0, 0.0) * inverseCanvasSize).x > 1.0)
+        {
+          rX = -coord.x;
+        }
+
+        if((coord - vec2(1.0, 0.0) * inverseCanvasSize).x < 0.0)
+        {
+          lX = -coord.x;
+        }
+
+        if((coord + vec2(0.0, 1.0) * inverseCanvasSize).y > 1.0)
+        {
+          rY = -coord.y;
+        }
+
+        if((coord - vec2(0.0, 1.0) * inverseCanvasSize).y < 0.0)
+        {
+          lY = -coord.y;
+        }
 
         float diverged = 0.5 / (inverseCanvasSize.x * inverseCanvasSize.y) * ((rX - lX) + (rY - lY));
 
