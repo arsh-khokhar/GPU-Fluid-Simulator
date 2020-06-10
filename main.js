@@ -253,6 +253,7 @@ function initializeShaders () {
         type: 'v2',
         value: new THREE.Vector2 (1.0 / CANVAS_WIDTH, 1.0 / CANVAS_HEIGHT),
       },
+      isVelocity: {value: false},
     },
     vertexShader: document.getElementById ('vertShader').innerHTML,
     fragmentShader: document.getElementById ('advectShader').innerHTML,
@@ -510,6 +511,7 @@ function addVelocity (posX, posY, dirX, dirY) {
 
 function advectDensity (timestep) {
   renderer.setRenderTarget (densityBackTexture);
+  advectShader.uniforms.isVelocity.value = false;
   advectShader.uniforms.toAdvectTexture.value = densityTexture;
   advectShader.uniforms.velocityTexture.value = velocityTexture;
   advectShader.uniforms.dt.value = timestep;
@@ -517,6 +519,7 @@ function advectDensity (timestep) {
   renderer.render (densityBackBuffer, camera);
   renderer.setRenderTarget (null);
 
+  advectShader.uniforms.isVelocity.value = false;
   advectShader.uniforms.toAdvectTexture.value = null;
   advectShader.uniforms.velocityTexture.value = null;
   advectShader.uniforms.dt.value = 0.0;
@@ -524,6 +527,7 @@ function advectDensity (timestep) {
 
 function advectVelocity (timestep) {
   renderer.setRenderTarget (velocityBackTexture);
+  advectShader.uniforms.isVelocity.value = true;
   advectShader.uniforms.toAdvectTexture.value = velocityTexture;
   advectShader.uniforms.velocityTexture.value = velocityTexture;
   advectShader.uniforms.dt.value = timestep;
@@ -531,6 +535,7 @@ function advectVelocity (timestep) {
   renderer.render (velocityBackBuffer, camera);
   renderer.setRenderTarget (null);
 
+  advectShader.uniforms.isVelocity.value = false;
   advectShader.uniforms.toAdvectTexture.value = null;
   advectShader.uniforms.velocityTexture.value = null;
   advectShader.uniforms.dt.value = 0.0;

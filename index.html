@@ -66,6 +66,7 @@
       uniform sampler2D velocityTexture;
       uniform float dt;
       uniform vec2 inverseCanvasSize;
+      uniform bool isVelocity;
 
       vec4 f4texRECTbilerp(sampler2D tex, vec2 s)
       {
@@ -86,15 +87,22 @@
       void main()
       {
           vec2 pos = gl_FragCoord.xy - dt * texture2D(velocityTexture, gl_FragCoord.xy * inverseCanvasSize).xy;
-          gl_FragColor = f4texRECTbilerp(toAdvectTexture, pos) * 0.999;
-          if(gl_FragCoord.x * inverseCanvasSize.x < 0.001 || gl_FragCoord.x * inverseCanvasSize.x > 0.998)
+          gl_FragColor = f4texRECTbilerp(toAdvectTexture, pos);
+          if(isVelocity)
           {
-            gl_FragColor.x *= -1.0;
-          }
+            if(gl_FragCoord.x * inverseCanvasSize.x < 0.001 || gl_FragCoord.x * inverseCanvasSize.x > 0.998)
+            {
+              gl_FragColor.x *= -1.0;
+            }
 
-          if(gl_FragCoord.y * inverseCanvasSize.y < 0.001 || gl_FragCoord.y * inverseCanvasSize.y > 0.998)
+            if(gl_FragCoord.y * inverseCanvasSize.y < 0.001 || gl_FragCoord.y * inverseCanvasSize.y > 0.998)
+            {
+             gl_FragColor.y *= -1.0;
+            }
+          }
+          else
           {
-            gl_FragColor.y *= -1.0;
+            gl_FragColor*=0.999;
           }
       }
     </script>
